@@ -22,9 +22,6 @@ outputs/
 *.log
 Thumbs.db
 
-# Claude Code
-.claude/
-
 # Backups & temp
 notebooks_backup/
 
