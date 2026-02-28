@@ -187,7 +187,8 @@ def gemini_embed(
 SARVAM_LANG_NAMES = {
     "hi-IN": "Hindi", "ta-IN": "Tamil", "bn-IN": "Bengali",
     "te-IN": "Telugu", "kn-IN": "Kannada", "ml-IN": "Malayalam",
-    "mr-IN": "Marathi", "gu-IN": "Gujarati", "pa-IN": "Punjabi", "en-IN": "English",
+    "mr-IN": "Marathi", "gu-IN": "Gujarati", "pa-IN": "Punjabi",
+    "mni-IN": "Meitei", "kok-IN": "Konkani", "en-IN": "English",
 }
 
 GEMINI_MODELS = {

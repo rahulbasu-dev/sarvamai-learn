@@ -370,6 +370,9 @@ LANG_COLORS = {
     "ta-IN": "#4ECDC4",   # teal
     "bn-IN": "#45B7D1",   # sky-blue
     "te-IN": "#96CEB4",   # sage-green
+    "mni-IN": "#E8575A",  # crimson
+    "pa-IN": "#F4A460",   # sandy-brown
+    "kok-IN": "#8B5CF6",  # violet
     "en-IN": "#888888",   # grey
 }
 
@@ -378,6 +381,9 @@ LANG_NAMES = {
     "ta-IN": "Tamil",
     "bn-IN": "Bengali",
     "te-IN": "Telugu",
+    "mni-IN": "Meitei",
+    "pa-IN": "Punjabi",
+    "kok-IN": "Konkani",
     "en-IN": "English",
 }
 
