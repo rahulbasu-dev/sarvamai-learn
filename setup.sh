@@ -23,39 +23,74 @@ error() { echo -e "${RED}[ERROR]${NC} $*"; }
 # 1. OS detection
 # --------------------------------------------------------------------------
 info "Detecting OS..."
+PKG_MANAGER=""
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     info "Detected: $PRETTY_NAME"
-    if [[ "$ID" != "ubuntu" && "$ID" != "debian" ]]; then
-        warn "This script is tested on Ubuntu/Debian. Your distro ($ID) may need manual adjustments."
-    fi
+    case "$ID" in
+        ubuntu|debian)  PKG_MANAGER="apt" ;;
+        rocky|rhel|centos|alma|fedora) PKG_MANAGER="dnf" ;;
+        *) warn "Unknown distro ($ID). Will try to auto-detect package manager." ;;
+    esac
 else
-    warn "Cannot detect OS. Proceeding anyway — install failures may need manual fixes."
+    warn "Cannot detect OS. Will try to auto-detect package manager."
 fi
+
+# Auto-detect package manager if not set
+if [ -z "$PKG_MANAGER" ]; then
+    if command -v apt-get &>/dev/null; then
+        PKG_MANAGER="apt"
+    elif command -v dnf &>/dev/null; then
+        PKG_MANAGER="dnf"
+    elif command -v yum &>/dev/null; then
+        PKG_MANAGER="yum"
+    else
+        error "No supported package manager found (apt, dnf, yum). Install dependencies manually."
+        exit 1
+    fi
+fi
+info "Using package manager: $PKG_MANAGER"
 
 # --------------------------------------------------------------------------
 # 2. System dependencies
 # --------------------------------------------------------------------------
-info "Installing system dependencies..."
-sudo apt-get update -qq
-
-PACKAGES=(
-    python3
-    python3-venv
-    python3-pip
-    git
-    ffmpeg
-    fonts-noto
-)
-
-for pkg in "${PACKAGES[@]}"; do
-    if dpkg -s "$pkg" &>/dev/null; then
-        info "  $pkg — already installed"
+install_packages() {
+    if [ "$PKG_MANAGER" = "apt" ]; then
+        sudo apt-get update -qq
+        local PACKAGES=(python3 python3-venv python3-pip git ffmpeg fonts-noto)
+        for pkg in "${PACKAGES[@]}"; do
+            if dpkg -s "$pkg" &>/dev/null; then
+                info "  $pkg — already installed"
+            else
+                info "  $pkg — installing..."
+                sudo apt-get install -y -qq "$pkg"
+            fi
+        done
     else
-        info "  $pkg — installing..."
-        sudo apt-get install -y -qq "$pkg"
+        # dnf/yum (Rocky, RHEL, CentOS, Alma, Fedora)
+        local MGR="$PKG_MANAGER"
+        local PACKAGES=(python3 python3-pip git ffmpeg google-noto-sans-fonts)
+        for pkg in "${PACKAGES[@]}"; do
+            if rpm -q "$pkg" &>/dev/null; then
+                info "  $pkg — already installed"
+            else
+                info "  $pkg — installing..."
+                sudo "$MGR" install -y -q "$pkg"
+            fi
+        done
+        # Enable EPEL + CRB for ffmpeg if not already available
+        if ! command -v ffmpeg &>/dev/null; then
+            warn "ffmpeg not found — trying EPEL/RPM Fusion..."
+            sudo "$MGR" install -y -q epel-release 2>/dev/null || true
+            sudo "$MGR" config-manager --set-enabled crb 2>/dev/null || true
+            sudo "$MGR" install -y -q --enablerepo=epel ffmpeg 2>/dev/null || \
+                warn "Could not install ffmpeg. Audio notebooks may not work. Install it manually."
+        fi
     fi
-done
+}
+
+info "Installing system dependencies..."
+install_packages
 
 # Verify Python version >= 3.10
 PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
