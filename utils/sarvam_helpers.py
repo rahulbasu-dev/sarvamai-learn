@@ -30,6 +30,11 @@ for _noisy_logger in ("httpx", "httpcore", "urllib3", "requests",
                        "huggingface_hub", "filelock"):
     logging.getLogger(_noisy_logger).setLevel(logging.WARNING)
 
+# Suppress matplotlib Indic glyph/font warnings (common on Rocky Linux)
+import warnings
+warnings.filterwarnings('ignore', message='Glyph .* missing from')
+warnings.filterwarnings('ignore', message='Matplotlib currently does not support')
+
 # ---------------------------------------------------------------------------
 # Matplotlib — configure Indic font support
 # ---------------------------------------------------------------------------

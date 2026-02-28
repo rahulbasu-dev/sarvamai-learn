@@ -87,6 +87,19 @@ install_packages() {
                 warn "Could not install ffmpeg. Audio notebooks may not work. Install it manually."
         fi
     fi
+
+    # Rebuild font cache and clear matplotlib font cache to pick up Noto fonts
+    if command -v fc-cache &>/dev/null; then
+        info "Rebuilding font cache..."
+        fc-cache -fv 2>/dev/null || true
+    fi
+    # Delete matplotlib font cache so it picks up newly installed fonts
+    local mpl_cache
+    mpl_cache=$(python3 -c "import matplotlib; print(matplotlib.get_cachedir())" 2>/dev/null || true)
+    if [ -n "$mpl_cache" ] && [ -d "$mpl_cache" ]; then
+        info "Clearing matplotlib font cache ($mpl_cache)..."
+        rm -f "$mpl_cache"/fontlist-*.json 2>/dev/null || true
+    fi
 }
 
 info "Installing system dependencies..."
@@ -140,8 +153,8 @@ info "  requests        — HTTP client"
 info "  Pillow          — image processing"
 info ""
 info "AI SDK packages:"
-info "  krutrim-cloud   — Krutrim AI SDK"
-info "  openai          — OpenAI-compatible client (used by Krutrim)"
+info "  google-generativeai — Google Gemini SDK"
+info "  openai              — OpenAI-compatible client"
 info ""
 info "Bonus cell packages (larger downloads):"
 info "  transformers    — Hugging Face model hub (~500 MB with models)"
@@ -161,7 +174,7 @@ info "All Python packages installed."
 # Show installed package versions
 info ""
 info "Installed package versions:"
-pip list --format=columns | grep -iE "sarvamai|dotenv|jupyter|matplotlib|seaborn|numpy|pandas|nltk|requests|Pillow|krutrim|openai|transformers|sentencepiece|sentence-trans|torch|sacrebleu|sacremoses|scipy" || true
+pip list --format=columns | grep -iE "sarvamai|dotenv|jupyter|matplotlib|seaborn|numpy|pandas|nltk|requests|Pillow|google-generativeai|openai|transformers|sentencepiece|sentence-trans|torch|sacrebleu|sacremoses|scipy" || true
 info ""
 
 # --------------------------------------------------------------------------
@@ -199,16 +212,16 @@ if [ ! -f .env ]; then
         fi
     fi
 
-    # KRUTRIM_CLOUD_API_KEY
-    if [ -n "${KRUTRIM_CLOUD_API_KEY:-}" ]; then
-        info "  KRUTRIM_CLOUD_API_KEY found in environment."
-        sed -i "s|^KRUTRIM_CLOUD_API_KEY=.*|KRUTRIM_CLOUD_API_KEY=$KRUTRIM_CLOUD_API_KEY|" .env
+    # GEMINI_API_KEY
+    if [ -n "${GEMINI_API_KEY:-}" ]; then
+        info "  GEMINI_API_KEY found in environment."
+        sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=$GEMINI_API_KEY|" .env
     else
-        read -rp "Enter your KRUTRIM_CLOUD_API_KEY (or press Enter to skip): " key
+        read -rp "Enter your GEMINI_API_KEY (or press Enter to skip): " key
         if [ -n "$key" ]; then
-            sed -i "s|^KRUTRIM_CLOUD_API_KEY=.*|KRUTRIM_CLOUD_API_KEY=$key|" .env
+            sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=$key|" .env
         else
-            warn "KRUTRIM_CLOUD_API_KEY left empty — set it in .env before running notebooks."
+            warn "GEMINI_API_KEY left empty — set it in .env before running Gemini comparison cells."
         fi
     fi
 else
