@@ -115,26 +115,67 @@ fi
 
 source venv/bin/activate
 info "Upgrading pip..."
-pip install --upgrade pip -q
+pip install --upgrade pip
+info "pip version: $(pip --version)"
 
 # --------------------------------------------------------------------------
 # 4. Python dependencies
 # --------------------------------------------------------------------------
-info "Installing Python packages from requirements.txt..."
-pip install -r requirements.txt -q
+echo ""
+info "============================================"
+info "  Installing Python packages"
+info "============================================"
+info ""
+info "Core packages:"
+info "  sarvamai        — Sarvam AI Python SDK"
+info "  python-dotenv   — .env file loader"
+info "  jupyter         — JupyterLab notebook server"
+info "  matplotlib      — plotting & visualisation"
+info "  seaborn         — statistical plots"
+info "  numpy           — numerical computing"
+info "  pandas          — data manipulation"
+info "  nltk            — NLP tokenizers & corpora"
+info "  IPython         — rich display in notebooks"
+info "  requests        — HTTP client"
+info "  Pillow          — image processing"
+info ""
+info "AI SDK packages:"
+info "  krutrim-cloud   — Krutrim AI SDK"
+info "  openai          — OpenAI-compatible client (used by Krutrim)"
+info ""
+info "Bonus cell packages (larger downloads):"
+info "  transformers    — Hugging Face model hub (~500 MB with models)"
+info "  sentencepiece   — subword tokeniser"
+info "  sentence-transformers — multilingual embeddings"
+info "  torch           — PyTorch deep learning framework (~800 MB)"
+info "  sacrebleu       — BLEU score evaluation"
+info "  sacremoses      — Moses tokenizer for MT"
+info "  scipy           — scientific computing"
+info ""
+info "Installing from requirements.txt (this may take a few minutes)..."
+echo ""
+pip install -r requirements.txt
+echo ""
+info "All Python packages installed."
+
+# Show installed package versions
+info ""
+info "Installed package versions:"
+pip list --format=columns | grep -iE "sarvamai|dotenv|jupyter|matplotlib|seaborn|numpy|pandas|nltk|requests|Pillow|krutrim|openai|transformers|sentencepiece|sentence-trans|torch|sacrebleu|sacremoses|scipy" || true
+info ""
 
 # --------------------------------------------------------------------------
 # 5. NLTK data
 # --------------------------------------------------------------------------
-info "Downloading NLTK data..."
+info "Downloading NLTK data (punkt tokenizer)..."
 python3 -c "
 import nltk, os
 nltk_data = os.path.expanduser('~/nltk_data')
 for pkg in ('punkt', 'punkt_tab'):
     try:
-        nltk.download(pkg, quiet=True, download_dir=nltk_data)
-    except Exception:
-        pass
+        nltk.download(pkg, quiet=False, download_dir=nltk_data)
+    except Exception as e:
+        print(f'  Warning: could not download {pkg}: {e}')
 "
 
 # --------------------------------------------------------------------------
