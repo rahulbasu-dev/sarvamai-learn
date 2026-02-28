@@ -24,6 +24,43 @@ from IPython.display import Audio, display
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
+# Suppress noisy HTTP/download logs that clutter notebook output
+for _noisy_logger in ("httpx", "httpcore", "urllib3", "requests",
+                       "sentence_transformers", "transformers",
+                       "huggingface_hub", "filelock"):
+    logging.getLogger(_noisy_logger).setLevel(logging.WARNING)
+
+# ---------------------------------------------------------------------------
+# Matplotlib — configure Indic font support
+# ---------------------------------------------------------------------------
+import matplotlib
+import matplotlib.font_manager as fm
+
+def _setup_indic_fonts():
+    """Try to use Noto Sans for Indic script rendering in matplotlib."""
+    noto_candidates = [
+        'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil',
+        'Noto Sans Bengali', 'Noto Sans Telugu',
+    ]
+    available = {f.name for f in fm.fontManager.ttflist}
+    for font in noto_candidates:
+        if font in available:
+            matplotlib.rcParams['font.family'] = 'sans-serif'
+            matplotlib.rcParams['font.sans-serif'] = [font, 'Noto Sans', 'DejaVu Sans']
+            logger.info(f"Matplotlib Indic font: {font}")
+            return
+    # Fallback: try any Noto font
+    noto_fonts = [f.name for f in fm.fontManager.ttflist if 'Noto' in f.name]
+    if noto_fonts:
+        matplotlib.rcParams['font.family'] = 'sans-serif'
+        matplotlib.rcParams['font.sans-serif'] = [noto_fonts[0], 'DejaVu Sans']
+        logger.info(f"Matplotlib Indic font (fallback): {noto_fonts[0]}")
+    else:
+        logger.warning("No Noto fonts found — Indic text in plots may show as boxes. "
+                       "Install: sudo apt install fonts-noto / sudo dnf install google-noto-sans-fonts")
+
+_setup_indic_fonts()
+
 # ---------------------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------------------
