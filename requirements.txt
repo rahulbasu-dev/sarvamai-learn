@@ -1,0 +1,22 @@
+sarvamai>=0.1.0
+python-dotenv
+jupyter
+matplotlib
+seaborn
+numpy
+pandas
+nltk
+IPython
+requests
+Pillow
+# Krutrim AI SDK (OpenAI-compatible client also works)
+krutrim-cloud
+openai
+# Bonus cell dependencies
+transformers>=4.40.0
+sentencepiece
+sentence-transformers>=2.7.0
+torch
+sacrebleu
+sacremoses
+scipy
